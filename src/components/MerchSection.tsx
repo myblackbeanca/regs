@@ -68,7 +68,7 @@ const MerchCard = ({ item }: { item: typeof merchItems[0] }) => {
       if (purchaseError) throw purchaseError;
 
       // Call payment gateway
-      const response = await fetch('http://127.0.0.1:8787/', {
+      const response = await fetch(' https://payment-test.alet8891.workers.dev', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

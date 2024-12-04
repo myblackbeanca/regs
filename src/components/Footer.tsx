@@ -8,10 +8,27 @@ const Footer = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const subscribedEmail = localStorage.getItem('userEmail');
-    if (subscribedEmail) {
-      setIsSubscribed(true);
-    }
+    const checkSubscriptionStatus = async () => {
+      const subscribedEmail = localStorage.getItem('userEmail');
+      if (!subscribedEmail) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('regs_coffee_newsletter_subscribers')
+          .select('email')
+          .eq('email', subscribedEmail)
+          .single();
+
+        if (error) throw error;
+        setIsSubscribed(!!data);
+      } catch (error) {
+        console.error('Error checking subscription status:', error);
+        localStorage.removeItem('userEmail'); // Clear invalid state
+        setIsSubscribed(false);
+      }
+    };
+
+    checkSubscriptionStatus();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +47,7 @@ const Footer = () => {
       if (existingEmails && existingEmails.length > 0) {
         alert('This email is already subscribed.');
         setIsSubscribed(true);
+        localStorage.setItem('userEmail', email);
       } else {
         // Insert the new email
         const { error: insertError } = await supabase
@@ -39,6 +57,7 @@ const Footer = () => {
         if (insertError) throw insertError;
 
         setIsSubscribed(true);
+        localStorage.setItem('userEmail', email);
         setEmail('');
       }
     } catch (error) {

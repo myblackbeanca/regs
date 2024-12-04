@@ -22,9 +22,9 @@ interface AuthModalProps {
 const AuthModal = ({ isOpen, onClose, onSubmit }: AuthModalProps) => {
   const [formData, setFormData] = useState({
     name: '',
-    password: 'hellominy'
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSignIn, setIsSignIn] = useState(true);
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
@@ -38,9 +38,9 @@ const AuthModal = ({ isOpen, onClose, onSubmit }: AuthModalProps) => {
     }
   });
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleAuth = async () => {
     try {
-      if (!formData.name.trim()) {
+      if (!isSignIn && !formData.name.trim()) {
         setError('Please enter your name');
         return;
       }
@@ -58,7 +58,7 @@ const AuthModal = ({ isOpen, onClose, onSubmit }: AuthModalProps) => {
       localStorage.setItem('userEmail', authenticatedEmail);
 
       setIsSubmitted(true);
-
+      
       const { data: existingUser, error: fetchError } = await supabase
         .from('regs_coffee_subscribers')
         .select()
@@ -70,6 +70,12 @@ const AuthModal = ({ isOpen, onClose, onSubmit }: AuthModalProps) => {
       }
 
       if (!existingUser) {
+        if (isSignIn) {
+          setError('Account not found. Please enter your name to create an account.');
+          setIsSignIn(false);
+          return;
+        }
+        
         const { error: insertError } = await supabase
           .from('regs_coffee_subscribers')
           .insert([
@@ -91,9 +97,12 @@ const AuthModal = ({ isOpen, onClose, onSubmit }: AuthModalProps) => {
       }
 
       
-      onSubmit({ name: formData.name });
-      setIsSubmitted(false);
-      navigate('/members');
+      onSubmit({ name: formData.name || existingUser?.name || '' });
+
+      setTimeout(() => {
+        setIsSubmitted(false);
+        navigate('/members');
+      }, 500);
     } catch (err) {
       setError('Authentication failed. Please try again.');
       console.error(err);
@@ -118,7 +127,9 @@ const AuthModal = ({ isOpen, onClose, onSubmit }: AuthModalProps) => {
         ) : (
           <>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">Subscriber Access</h2>
+              <h2 className="text-2xl font-bold text-white">
+                {isSignIn ? 'Sign In' : 'Sign Up'}
+              </h2>
               <button onClick={onClose} className="text-gray-400 hover:text-white">
                 <X className="w-6 h-6" />
               </button>
@@ -130,34 +141,47 @@ const AuthModal = ({ isOpen, onClose, onSubmit }: AuthModalProps) => {
               </div>
             )}
 
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-gray-400 mb-2">Name</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-neutral-800 text-white rounded-lg p-3 focus:ring-2 focus:ring-amber-400 focus:outline-none"
-                  placeholder="Enter your name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-400 mb-2">Password</label>
-                <input
-                  type="password"
-                  required
-                  value={formData.password}
-                  disabled
-                  className="w-full bg-neutral-800 text-white rounded-lg p-3 focus:ring-2 focus:ring-amber-400 focus:outline-none"
-                />
-                <p className="text-sm text-gray-400 mt-1">Default password: hellominy</p>
-              </div>
+            <div className="flex gap-4 mb-6">
+              <button
+                onClick={() => setIsSignIn(true)}
+                className={`flex-1 py-2 px-4 rounded-lg transition-all duration-300 ${
+                  isSignIn 
+                    ? 'bg-amber-400 text-black' 
+                    : 'bg-neutral-800 text-gray-400'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setIsSignIn(false)}
+                className={`flex-1 py-2 px-4 rounded-lg transition-all duration-300 ${
+                  !isSignIn 
+                    ? 'bg-amber-400 text-black' 
+                    : 'bg-neutral-800 text-gray-400'
+                }`}
+              >
+                Sign Up
+              </button>
             </div>
 
+            {!isSignIn && (
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-gray-400 mb-2">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-neutral-800 text-white rounded-lg p-3 focus:ring-2 focus:ring-amber-400 focus:outline-none"
+                    placeholder="Enter your name"
+                  />
+                </div>
+              </div>
+            )}
+
             <button
-              onClick={handleGoogleLogin}
+              onClick={handleGoogleAuth}
               className="w-full bg-white hover:bg-gray-100 text-gray-900 font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-3 transition-all duration-300"
             >
               <img 
@@ -165,7 +189,7 @@ const AuthModal = ({ isOpen, onClose, onSubmit }: AuthModalProps) => {
                 alt="Google" 
                 className="w-5 h-5"
               />
-              Sign in with Google
+              {isSignIn ? 'Sign in with Google' : 'Sign up with Google'}
             </button>
           </>
         )}
