@@ -75,11 +75,11 @@ function App() {
           <Routes>
             <Route path="/" element={
               <main>
-                {/* <HeroSection />
+                <HeroSection />
                 <DJSection />
-                <MixtapeGrid mixtapes={homepageMixtapes} /> */}
+                <MixtapeGrid mixtapes={homepageMixtapes} />
                 <VideoSection />
-                {/* <ArtistMixtapes /> */}
+                <ArtistMixtapes />
                 <MerchSection />
               </main>
             } />
