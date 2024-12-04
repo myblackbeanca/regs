@@ -105,14 +105,14 @@ const HeroSection = () => {
             <div className="flex flex-wrap gap-4">
               <button 
                 onClick={() => scrollToSection('featured-mixtapes')} 
-                className="btn btn-primary"
+                className="btn btn-primary flex gap-2 items-center"
               >
                 <Music className="w-5 h-5 mr-2" />
                 Explore Mixtapes
               </button>
               <button 
                 onClick={() => scrollToSection('upcoming-events')} 
-                className="btn btn-secondary"
+                className="btn btn-secondary flex gap-2 items-center"
               >
                 <Play className="w-5 h-5 mr-2" />
                 Watch Live
